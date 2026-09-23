@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; worker-src 'self' blob:; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="瀏覽器本機處理的 PDF 工具箱：合併、拆分、旋轉、轉 JPG、圖片轉 PDF、隱私遮蔽。">
+  <title>瑋佳 PDF 工具箱</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="libs/pdf-lib.min.js"></script>
+  <script defer src="libs/pdf.min.js"></script>
+  <script defer src="libs/jszip.min.js"></script>
+  <script defer src="libs/Sortable.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="shell header-inner">
+    <div>
+      <div class="eyebrow">LOCAL-FIRST PDF TOOLS</div>
+      <h1>瑋佳 PDF 工具箱</h1>
+      <p>免上傳、免帳號，PDF 直接在你的瀏覽器中處理。</p>
+    </div>
+    <a class="privacy-link" href="privacy.html">隱私說明</a>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="security-card">
+    <strong>隱私模式</strong>
+    <span>本網站沒有檔案上傳 API；正式頁面設定 <code>connect-src 'none'</code>，工具頁本身不能把你的 PDF 傳到網路。</span>
+  </section>
+
+  <nav class="tool-grid" aria-label="PDF 工具">
+    <button class="tool-card active" data-tool="merge"><span>01</span><b>PDF 合併重組</b><small>縮圖、拖曳排序、刪頁</small></button>
+    <button class="tool-card" data-tool="split"><span>02</span><b>PDF 拆分</b><small>依頁碼範圍分割</small></button>
+    <button class="tool-card" data-tool="edit"><span>03</span><b>刪除／旋轉</b><small>逐頁管理後輸出</small></button>
+    <button class="tool-card" data-tool="jpg"><span>04</span><b>PDF 轉 JPG</b><small>指定頁面、批次 ZIP</small></button>
+    <button class="tool-card" data-tool="imgpdf"><span>05</span><b>圖片轉 PDF</b><small>JPG／PNG 排序合成</small></button>
+    <button class="tool-card" data-tool="redact"><span>06</span><b>隱私遮蔽</b><small>平面化安全輸出</small></button>
+  </nav>
+
+  <section id="merge" class="workspace active">
+    <div class="workspace-head"><div><h2>PDF 合併重組</h2><p>加入多個 PDF，再直接拖曳每一頁改變輸出順序。</p></div></div>
+    <label class="dropzone" id="mergeDrop"><input id="mergeInput" type="file" accept="application/pdf,.pdf" multiple><b>拖曳 PDF 到這裡</b><span>或點一下選擇多個 PDF</span></label>
+    <div class="actions"><button class="btn muted" id="mergeClear">全部清除</button><button class="btn primary" id="mergeExport">下載合併 PDF</button></div>
+    <div id="mergePages" class="page-grid"></div><div id="mergeStatus" class="status"></div>
+  </section>
+
+  <section id="split" class="workspace">
+    <div class="workspace-head"><div><h2>PDF 拆分</h2><p>例如輸入 <code>1-3,4-6,9</code>，會輸出三個 PDF 並打包成 ZIP。</p></div></div>
+    <label class="dropzone compact"><input id="splitInput" type="file" accept="application/pdf,.pdf"><b>選擇一個 PDF</b><span id="splitFileName">尚未選擇</span></label>
+    <div class="form-row"><label>拆分範圍<input id="splitRanges" type="text" placeholder="例如：1-3,4-6,9"></label><button class="btn primary" id="splitExport">下載拆分 ZIP</button></div>
+    <div id="splitStatus" class="status"></div>
+  </section>
+
+  <section id="edit" class="workspace">
+    <div class="workspace-head"><div><h2>刪除／旋轉頁面</h2><p>每頁可刪除或旋轉 90°，最後重新輸出 PDF。</p></div></div>
+    <label class="dropzone compact"><input id="editInput" type="file" accept="application/pdf,.pdf"><b>選擇一個 PDF</b><span id="editFileName">尚未選擇</span></label>
+    <div class="actions"><button class="btn primary" id="editExport">下載修改後 PDF</button></div>
+    <div id="editPages" class="page-grid"></div><div id="editStatus" class="status"></div>
+  </section>
+
+  <section id="jpg" class="workspace">
+    <div class="workspace-head"><div><h2>PDF 轉 JPG</h2><p>可以轉全部頁面，也可以只輸入指定頁碼。</p></div></div>
+    <label class="dropzone compact"><input id="jpgInput" type="file" accept="application/pdf,.pdf"><b>選擇一個 PDF</b><span id="jpgFileName">尚未選擇</span></label>
+    <div class="form-row multi"><label>頁碼<input id="jpgRanges" type="text" placeholder="留白＝全部；例如 1-3,8"></label><label>畫質<select id="jpgScale"><option value="1.5">一般</option><option value="2" selected>清晰</option><option value="3">高解析</option></select></label><button class="btn primary" id="jpgExport">下載 JPG ZIP</button></div>
+    <div id="jpgStatus" class="status"></div>
+  </section>
+
+  <section id="imgpdf" class="workspace">
+    <div class="workspace-head"><div><h2>圖片轉 PDF</h2><p>加入 JPG／PNG，拖曳調整圖片順序後合成 PDF。</p></div></div>
+    <label class="dropzone" id="imgDrop"><input id="imgInput" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple><b>拖曳圖片到這裡</b><span>支援 JPG／PNG</span></label>
+    <div class="form-row multi"><label>紙張<select id="paperMode"><option value="a4p">A4 直式</option><option value="a4l">A4 橫式</option><option value="original">依原圖比例</option></select></label><button class="btn muted" id="imgClear">全部清除</button><button class="btn primary" id="imgExport">下載 PDF</button></div>
+    <div id="imgPages" class="page-grid"></div><div id="imgStatus" class="status"></div>
+  </section>
+
+  <section id="redact" class="workspace">
+    <div class="workspace-head"><div><h2>隱私遮蔽</h2><p>用滑鼠框選敏感資訊；輸出時將整頁平面化，避免原文字仍留在可搜尋文字層。</p></div></div>
+    <div class="warning"><strong>注意：</strong>安全遮蔽版會把輸出 PDF 影像化，因此文字搜尋與選取功能會消失，檔案也可能變大。</div>
+    <label class="dropzone compact"><input id="redactInput" type="file" accept="application/pdf,.pdf"><b>選擇一個 PDF</b><span id="redactFileName">尚未選擇</span></label>
+    <div class="actions"><button class="btn muted" id="redactUndo">復原本頁最後一框</button><button class="btn muted" id="redactClear">清除本頁遮蔽</button><button class="btn primary" id="redactExport">下載安全遮蔽 PDF</button></div>
+    <div class="redact-layout"><aside id="redactList" class="redact-list"></aside><div class="canvas-wrap"><canvas id="redactCanvas"></canvas></div></div>
+    <div id="redactStatus" class="status"></div>
+  </section>
+</main>
+<footer class="site-footer"><div class="shell">瑋佳 PDF 工具箱・瀏覽器本機處理・無廣告・無分析追蹤</div></footer>
+</body>
+</html>

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 mkdir -p dist/libs
-cp index.html styles.css app.js large-split.js privacy.html dist/
+cp index.html styles.css app.js large-split.js privacy.html a3-poster.html a3-poster.css a3-poster.js dist/
 
 curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js -o dist/libs/pdf-lib.min.js
 curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js -o dist/libs/pdf.min.js
